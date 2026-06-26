@@ -13,15 +13,30 @@ function Callback() {
     hasRun.current = true
 
     const code = searchParams.get('code')
-    if (!code) return
+    console.log('Code from URL:', code)
+    console.log('API URL:', API)
+    
+    if (!code) {
+      console.log('No code found!')
+      return
+    }
 
     fetch(`${API}/auth/github/callback?code=${code}`)
-      .then(response => response.json())
+      .then(response => {
+        console.log('Response status:', response.status)
+        return response.json()
+      })
       .then(data => {
+        console.log('Data received:', data)
         if (data.access_token) {
           localStorage.setItem('github_token', data.access_token)
           navigate('/')
+        } else {
+          console.log('No access token in response!')
         }
+      })
+      .catch(err => {
+        console.log('Fetch error:', err)
       })
   }, [])
 
