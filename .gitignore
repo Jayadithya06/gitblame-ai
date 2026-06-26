@@ -1,0 +1,13 @@
+# Backend
+gitblame-backend/venv/
+gitblame-backend/__pycache__/
+gitblame-backend/chroma_db/
+gitblame-backend/.env
+gitblame-backend/routers/__pycache__/
+gitblame-backend/services/__pycache__/
+
+# Frontend
+gitblame-frontend/node_modules/
+gitblame-frontend/dist/
+gitblame-frontend/.env
+gitblame-frontend/.env.local
