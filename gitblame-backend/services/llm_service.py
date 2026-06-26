@@ -1,35 +1,15 @@
-import httpx
+import os
 import json
+from groq import Groq
+from dotenv import load_dotenv
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-LLM_MODEL = "llama3.2"
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
-async def analyze_suspects(bug_description: str, suspects: list):
-    prompt = build_prompt(bug_description, suspects)
-    
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(
-            OLLAMA_URL,
-            json={
-                "model": LLM_MODEL,
-                "prompt": prompt,
-                "stream": False
-            }
-        )
-    
-    data = response.json()
-    raw_text = data["response"]
-    
-    try:
-        result = json.loads(raw_text)
-    except:
-        result = {"raw": raw_text}
-    
-    return result
+USE_LOCAL = os.getenv("USE_LOCAL_EMBEDDINGS", "true").lower() == "true"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 def build_prompt(bug_description: str, suspects: list):
     suspects_text = ""
-    
     for i, suspect in enumerate(suspects):
         metadata = suspect.get("metadata", {})
         suspects_text += f"""
@@ -40,7 +20,6 @@ File Changed: {metadata.get('filename', 'unknown')}
 Diff: {suspect.get('document', '')}
 ---
 """
-    
     return f"""You are a senior software engineer debugging a production issue.
 
 BUG DESCRIPTION:
@@ -63,4 +42,41 @@ Analyze each suspect commit and return a JSON array with this exact structure:
   }}
 ]
 
-Return ONLY the JSON array, no other text."""
+Return ONLY the JSON array, no other text, no markdown backticks."""
+
+async def analyze_suspects(bug_description: str, suspects: list):
+    prompt = build_prompt(bug_description, suspects)
+
+    if USE_LOCAL:
+        import httpx
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": "llama3.2",
+                    "prompt": prompt,
+                    "stream": False
+                }
+            )
+        data = response.json()
+        raw_text = data["response"]
+    else:
+        client = Groq(api_key=GROQ_API_KEY)
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama3-8b-8192",
+            temperature=0.1
+        )
+        raw_text = chat_completion.choices[0].message.content
+
+    try:
+        clean = raw_text.strip()
+        if clean.startswith("```"):
+            clean = clean.split("```")[1]
+            if clean.startswith("json"):
+                clean = clean[4:]
+        result = json.loads(clean.strip())
+    except:
+        result = {"raw": raw_text}
+
+    return result
