@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 
 const API = import.meta.env.VITE_API_URL
@@ -6,8 +6,12 @@ const API = import.meta.env.VITE_API_URL
 function Callback() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const hasRun = useRef(false)
 
   useEffect(() => {
+    if (hasRun.current) return
+    hasRun.current = true
+
     const code = searchParams.get('code')
     if (!code) return
 
