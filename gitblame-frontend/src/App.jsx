@@ -25,7 +25,9 @@ function App() {
 
   useEffect(() => {
     const savedToken = localStorage.getItem('github_token')
-    setToken(savedToken)
+    if (savedToken) {
+      setToken(savedToken)
+    }
     setLoading(false)
   }, [])
 

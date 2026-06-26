@@ -30,7 +30,9 @@ function Callback() {
         console.log('Data received:', data)
         if (data.access_token) {
           localStorage.setItem('github_token', data.access_token)
-          navigate('/')
+          setTimeout(() => {
+            window.location.href = '/'
+          }, 500)
         } else {
           console.log('No access token in response!')
         }
