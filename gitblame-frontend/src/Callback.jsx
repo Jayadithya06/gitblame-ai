@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 
+const API = import.meta.env.VITE_API_URL
+
 function Callback() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -9,7 +11,7 @@ function Callback() {
     const code = searchParams.get('code')
     if (!code) return
 
-    fetch(`http://localhost:8000/auth/github/callback?code=${code}`)
+    fetch(`${API}/auth/github/callback?code=${code}`)
       .then(response => response.json())
       .then(data => {
         if (data.access_token) {
