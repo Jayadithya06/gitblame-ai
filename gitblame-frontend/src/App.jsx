@@ -120,7 +120,6 @@ function App() {
       })
       .then(r => r.json())
       .then(data => {
-        console.log('Raw analysis response:', JSON.stringify(data))
         setAnalysisResults(Array.isArray(data) ? data : [])
         setAnalyzing(false)
         scrollTo(step4Ref)
