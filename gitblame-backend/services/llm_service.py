@@ -64,7 +64,7 @@ async def analyze_suspects(bug_description: str, suspects: list):
         client = Groq(api_key=GROQ_API_KEY)
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="openai/gpt-oss-20b",
+            model="llama-3.3-70b-versatile",
             temperature=0.1
         )
         raw_text = chat_completion.choices[0].message.content
