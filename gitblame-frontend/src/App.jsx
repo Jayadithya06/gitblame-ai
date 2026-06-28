@@ -168,7 +168,7 @@ function App() {
                 </div>
               )}
               <button className="mode-btn" onClick={() => setDarkMode(!darkMode)}>
-                {darkMode ? '☀️' : '🌙'}
+                {darkMode ? '🔆' : '🌙'}
               </button>
               {token && (
                 <button className="btn-signout" onClick={handleLogout}>Sign out</button>
