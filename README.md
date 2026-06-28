@@ -127,7 +127,7 @@ In production:
 - `USE_LOCAL_EMBEDDINGS=false` switches embeddings from Ollama → HuggingFace
 - The LLM switches from local Ollama → Groq (Llama 3.3 70B Versatile)
 
-**Live demo:** [your-render-url]
+**Live demo:** https://gitblame-ai-frontend.onrender.com
 
 ---
 
