@@ -6,12 +6,13 @@ DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'chroma_db')
 client = chromadb.PersistentClient(path=DB_PATH)
 collection = client.get_or_create_collection(name="diff_chunks")
 
-def store_chunks(chunks: list):
+def store_chunks_with_embeddings(chunks: list, embeddings: list):
     new_ids = []
     new_documents = []
     new_metadatas = []
+    new_embeddings = []
 
-    for i, chunk in enumerate(chunks):
+    for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
         chunk_id = f"{chunk['sha']}_{i}"
         text = f"{chunk['message']} {chunk['filename']} {chunk['patch']}"
 
@@ -26,27 +27,29 @@ def store_chunks(chunks: list):
             "message": chunk["message"],
             "filename": chunk["filename"]
         })
+        new_embeddings.append(embedding)
 
     if new_ids:
         collection.add(
             documents=new_documents,
+            embeddings=new_embeddings,
             metadatas=new_metadatas,
             ids=new_ids
         )
-        print(f"Stored {len(new_ids)} new chunks, skipped {len(chunks) - len(new_ids)} existing")
+        print(f"Stored {len(new_ids)} new chunks")
     else:
-        print(f"All {len(chunks)} chunks already stored — skipping embedding entirely")
+        print(f"All chunks already stored")
 
     return {"stored": len(new_ids)}
 
-def search_chunks(query_text: str, n_results: int = 3):
+def search_chunks_with_embedding(query_embedding: list, n_results: int = 3):
     count = collection.count()
     actual_n = min(n_results, count)
     if actual_n == 0:
         return {"metadatas": [[]], "documents": [[]], "distances": [[]]}
 
     results = collection.query(
-        query_texts=[query_text],
+        query_embeddings=[query_embedding],
         n_results=actual_n
     )
     return results
