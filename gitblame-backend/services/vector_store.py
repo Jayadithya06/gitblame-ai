@@ -26,7 +26,7 @@ def store_chunks(chunks: list):
         )
     return {"stored": len(chunks)}
 
-def search_chunks(query_text: str, n_results: int = 5):
+def search_chunks(query_text: str, n_results: int = 3):
     count = collection.count()
     actual_n = min(n_results, count)
     if actual_n == 0:

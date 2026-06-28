@@ -8,16 +8,33 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 USE_LOCAL_INFERENCE = os.getenv("USE_LOCAL_EMBEDDINGS", "true").lower() == "true"
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
+MAX_DIFF_LINES = 60
+
+def truncate_patch(patch: str) -> str:
+    lines = patch.splitlines()
+    if len(lines) <= MAX_DIFF_LINES:
+        return patch
+    first = MAX_DIFF_LINES // 2
+    last = MAX_DIFF_LINES - first
+    return (
+        "\n".join(lines[:first])
+        + "\n\n... (middle of diff omitted) ...\n\n"
+        + "\n".join(lines[-last:])
+    )
+
 def build_prompt(bug_description: str, suspects: list):
     suspects_text = ""
     for i, suspect in enumerate(suspects):
         metadata = suspect.get("metadata", {})
+        patch = suspect.get('document', '')
+        patch_truncated = truncate_patch(patch)
+
         suspects_text += f"""
 SUSPECT {i + 1}:
 Commit SHA: {metadata.get('sha', 'unknown')}
 Commit Message: {metadata.get('message', 'unknown')}
 File Changed: {metadata.get('filename', 'unknown')}
-Diff: {suspect.get('document', '')}
+Diff: {patch_truncated}
 ---
 """
     return f"""You are a senior software engineer debugging a production issue.
@@ -62,12 +79,19 @@ async def analyze_suspects(bug_description: str, suspects: list):
         raw_text = data["response"]
     else:
         client = Groq(api_key=GROQ_API_KEY)
-        chat_completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile",
-            temperature=0.1
-        )
-        raw_text = chat_completion.choices[0].message.content
+        try:
+            chat_completion = client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama-3.3-70b-versatile",
+                temperature=0.1,
+                max_tokens=2048
+            )
+            raw_text = chat_completion.choices[0].message.content
+        except Exception as e:
+            error_msg = str(e)
+            if "rate_limit_exceeded" in error_msg or "413" in error_msg:
+                raise ValueError("Rate limit hit — prompt still too large. Try a smaller date range.")
+            raise
 
     try:
         clean = raw_text.strip()

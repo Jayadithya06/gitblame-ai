@@ -126,7 +126,7 @@ function App() {
       })
       .catch(err => {
         setAnalyzing(false)
-        setError('Analysis failed. Please try again in a moment.')
+        setError('Analysis failed. Try a smaller date range or fewer commits and try again.')
       })
   }
 
