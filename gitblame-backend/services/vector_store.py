@@ -14,7 +14,13 @@ def store_chunks_with_embeddings(chunks: list, embeddings: list):
 
     for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
         chunk_id = f"{chunk['sha']}_{i}"
-        text = f"{chunk['message']} {chunk['filename']} {chunk['patch']}"
+        patch = chunk.get("patch", "")[:1500]
+
+        text = (
+            f"{chunk['message']}\n"
+            f"{chunk['filename']}\n"
+            f"{patch}"
+        )
 
         existing = collection.get(ids=[chunk_id])
         if existing["ids"]:

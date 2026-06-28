@@ -14,13 +14,32 @@ class AnalysisRequest(BaseModel):
 
 @router.post("/analyze")
 async def analyze(request: AnalysisRequest):
+    MAX_CHUNKS = 40
+    if len(request.chunks) > MAX_CHUNKS:
+        request.chunks = request.chunks[:MAX_CHUNKS]
     start = time.time()
 
     # Embed all chunks
-    texts = [
-        f"{chunk['message']} {chunk['filename']} {chunk['patch']}"
-        for chunk in request.chunks
-    ]
+    MAX_PATCH_CHARS = 1500
+
+    valid_chunks = []
+    texts = []
+
+    for chunk in request.chunks:
+
+        patch = chunk.get("patch")
+        valid_chunks.append(chunk)
+
+        if not patch:
+            continue
+
+        patch = patch[:MAX_PATCH_CHARS]
+
+        texts.append(
+            f"{chunk['message']}\n"
+            f"{chunk['filename']}\n"
+            f"{patch}"
+        )
     embeddings = []
     for text in texts:
         emb = await embed_text(text)
@@ -28,7 +47,7 @@ async def analyze(request: AnalysisRequest):
     print(f"Embeddings: {time.time() - start:.2f}s")
 
     t1 = time.time()
-    store_chunks_with_embeddings(request.chunks, embeddings)
+    store_chunks_with_embeddings(valid_chunks, embeddings)
     print(f"Store chunks: {time.time() - t1:.2f}s")
 
     t2 = time.time()

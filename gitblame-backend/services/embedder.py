@@ -14,7 +14,7 @@ HF_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sente
 
 async def embed_text(text: str):
     if USE_LOCAL:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
                 OLLAMA_URL,
                 json={"model": OLLAMA_MODEL, "prompt": text}
@@ -22,12 +22,13 @@ async def embed_text(text: str):
         data = response.json()
         return data["embedding"]
     else:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
                 HF_URL,
                 headers={"Authorization": f"Bearer {HF_TOKEN}"},
                 json={"inputs": text}
             )
+        response.raise_for_status()
         result = response.json()
         if isinstance(result, list):
             return result
