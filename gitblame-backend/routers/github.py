@@ -31,18 +31,6 @@ async def get_commits(repo: str, token: str, since: str, until: str):
         )
     return response.json()
 
-@router.get("/github/commit-diff")
-async def get_commit_diff(repo: str, sha: str, token: str):
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"https://api.github.com/repos/{repo}/commits/{sha}",
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/vnd.github+json"
-            }
-        )
-    return response.json()
-
 @router.get("/github/all-diffs")
 async def get_all_diffs(repo: str, token: str, since: str, until: str):
     async with httpx.AsyncClient() as client:

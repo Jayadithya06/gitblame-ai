@@ -126,7 +126,7 @@ function App() {
       })
       .catch(err => {
         setAnalyzing(false)
-        setError('Analysis failed. Make sure Ollama is running and try again.')
+        setError('Analysis failed. Please try again in a moment.')
       })
   }
 
@@ -355,7 +355,7 @@ function App() {
 
               <footer>
                 <span className="ft-l">GitBlame AI</span>
-                <span className="ft-r">llama3.2 · ChromaDB · local inference</span>
+                <span className="ft-r">llama-3.3-70b · ChromaDB · Groq</span>
               </footer>
             </>
           )}

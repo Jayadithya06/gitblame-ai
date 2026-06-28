@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
-USE_LOCAL = os.getenv("USE_LOCAL_EMBEDDINGS", "true").lower() == "true"
+USE_LOCAL_INFERENCE = os.getenv("USE_LOCAL_EMBEDDINGS", "true").lower() == "true"
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 def build_prompt(bug_description: str, suspects: list):
@@ -47,7 +47,7 @@ Return ONLY the JSON array, no other text, no markdown backticks."""
 async def analyze_suspects(bug_description: str, suspects: list):
     prompt = build_prompt(bug_description, suspects)
 
-    if USE_LOCAL:
+    if USE_LOCAL_INFERENCE:
         import httpx
         async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(
